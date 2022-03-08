@@ -2,7 +2,7 @@ const router = require('express').Router();
 const controller = require('../controllers/products');
 
 
-router.get("/products", (req, res, next) => {
+router.get("/products/", (req, res, next) => {
     Products.all("SELECT * FROM product ORDER BY id ASC", [], (err, rows) => {
         if (err) {
             res.status(400).json({ "error": err.message });
@@ -12,7 +12,7 @@ router.get("/products", (req, res, next) => {
     });
 });
 
-router.post("/products", (req, res, next) => {
+router.post("/products/", (req, res, next) => {
     var reqProduct = re.body;
     db.run(`INSERT INTO product (name, price, mrp, stock, isPublished) VALUES (${name},${price},${mrp},${stock},false)`,
     [reqProduct.name, reqProduct.price, reqProduct.mrp, reqProduct.stock, reqProduct.isPublished],
@@ -27,9 +27,19 @@ router.post("/products", (req, res, next) => {
     });
 });
 
-app.patch("/products", (req, res, next) => {
+app.patch("/products/", (req, res, next) => {
     var reqProduct = re.body;
-    db.run(`UPDATE product set name = ${name}, price = ${price}, mrp = ${mrp}, stock = ${stock}, isPublished = true WHERE id = ${id}`,
+    if (mrp >= price && stock !== 0){
+        res.status(400).json({ "MRP should be less than equal to the Price y Stock count is 0": res.message })
+    }
+    else if(mrp >= price){
+        res.status(400).json({ "MRP should be less than equal to the Price": res.message })
+    }
+    else if (stock !== 0){
+        res.status(400).json({ "Stock count is 0": res.message })
+    }
+    else{
+        db.run(`UPDATE product set name = ${name}, price = ${price}, mrp = ${mrp}, stock = ${stock}, isPublished = true WHERE id = ${id}`,
         [reqProduct.name, reqProduct.price, reqProduct.mrp, reqProduct.stock, reqProduct.isPublished, reqProduct.id],
         function (err, result) {
             if (err) {
@@ -38,6 +48,7 @@ app.patch("/products", (req, res, next) => {
             }
             res.status(204).json({ updatedID: this.changes });
         });
+    }
 });
 
 app.delete("/products/<id>:id", (req, res, next) => {

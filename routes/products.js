@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const controller = require('../controllers/products');
 
-const db = new sqlite3.Database('./emp_database.db', (err) => {
 
 router.get("/products", (req, res, next) => {
     Products.all("SELECT * FROM product ORDER BY id ASC", [], (err, rows) => {
